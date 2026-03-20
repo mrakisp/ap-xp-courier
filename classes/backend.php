@@ -257,7 +257,7 @@ class apxpc_Backend {
 	 */
 	public function render_field_account_code_1() {
 		$value = get_option($this->plugin->setPrefix('account_code_1'));
-		echo '<input type="text" name="' . esc_attr($this->plugin->setPrefix('account_code_1')) . '" value="' . esc_attr($value) . '" class="regular-text" placeholder="e.g., 100-0367-0001" />';
+		echo '<input type="text" name="' . esc_attr($this->plugin->setPrefix('account_code_1')) . '" value="' . esc_attr($value) . '" class="regular-text" placeholder="e.g., 100-0044-0001" />';
 	}
 
 	/**
@@ -273,7 +273,7 @@ class apxpc_Backend {
 	 */
 	public function render_field_account_code_2() {
 		$value = get_option($this->plugin->setPrefix('account_code_2'));
-		echo '<input type="text" name="' . esc_attr($this->plugin->setPrefix('account_code_2')) . '" value="' . esc_attr($value) . '" class="regular-text" placeholder="e.g., 100-0367-0002" />';
+		echo '<input type="text" name="' . esc_attr($this->plugin->setPrefix('account_code_2')) . '" value="' . esc_attr($value) . '" class="regular-text" placeholder="e.g., 100-0044-0002" />';
 	}
 
 	/**
