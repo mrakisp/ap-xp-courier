@@ -1,0 +1,6 @@
+/* Correction of tab header/bottom line  */
+li.nav-item {margin-bottom:0;}
+
+/* Max. width of tab & accordion */
+.tab-content {max-width:600px;}
+#accordion {max-width:600px;}
