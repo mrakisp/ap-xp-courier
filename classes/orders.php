@@ -77,7 +77,7 @@ class apxpc_Orders {
 			echo '</button>';
 			echo '</div>';
 		} else {
-			echo '<p>' . esc_html__('Δεν έχει δημιουργηθεί ακόμη Voucher. Με την δημιουργία του, θα αποσταλεί email στον πελάτη αυτόματα με το Voucher.', $this->plugin->config['textDomain']) . '</p>';
+			echo '<p>' . esc_html__('Δεν έχει δημιουργηθεί ακόμη Voucher.', $this->plugin->config['textDomain']) . '</p>';
 			
 			// Get account codes from settings
 			$account_code_1 = get_option($this->plugin->setPrefix('account_code_1'));
@@ -158,7 +158,7 @@ class apxpc_Orders {
 			echo '</button>';
 			echo '</div>';
 		} else {
-			echo '<p style="color: #666;">' . esc_html__('Δεν έχει δημιουργηθεί ακόμη Voucher. Με την δημιουργία του, θα αποσταλεί email στον πελάτη αυτόματα με το Voucher.', $this->plugin->config['textDomain']) . '</p>';
+			echo '<p style="color: #666;">' . esc_html__('Δεν έχει δημιουργηθεί ακόμη Voucher.', $this->plugin->config['textDomain']) . '</p>';
 			
 			// Get account codes from settings
 			$account_code_1 = get_option($this->plugin->setPrefix('account_code_1'));
