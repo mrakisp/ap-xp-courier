@@ -289,6 +289,9 @@ class apxpc_Orders {
 		// Build payload
 		$payload = $this->build_shipment_payload($order, $user_alias, $credential_value, $api_key, $account_code);
 		
+		// Debug payload
+		// error_log('XP Courier Payload: ' . wp_json_encode($payload));
+		
 		// Make API request
 		$response = $this->call_xp_courier_api($payload);
 		
@@ -307,7 +310,8 @@ class apxpc_Orders {
 		
 		// Now fetch the voucher
 		$voucher_response = $this->call_voucher_api(
-			$response['data']['ShipmentNumber'],
+			// $response['data']['ShipmentNumber'],
+			$response['data']['TrackingNumbers'][0],
 			$user_alias,
 			$credential_value,
 			$api_key
@@ -362,7 +366,13 @@ class apxpc_Orders {
 			wp_send_json_error(['message' => 'Order not found.']);
 		}
 		
-		$shipment_number = isset($_POST['shipment_number']) ? sanitize_text_field($_POST['shipment_number']) : '';
+		// Get tracking number from order meta
+		$tracking_numbers = get_post_meta($order_id, $this->plugin->setPrefix('tracking_numbers'), true);
+		if (empty($tracking_numbers)) {
+			wp_send_json_error(['message' => 'No tracking numbers found for this order.']);
+		}
+		
+		$tracking_number = is_array($tracking_numbers) ? $tracking_numbers[0] : $tracking_numbers;
 		
 		// Get settings
 		$user_alias = get_option($this->plugin->setPrefix('user_alias'));
@@ -373,8 +383,8 @@ class apxpc_Orders {
 			wp_send_json_error(['message' => 'XP Courier credentials not configured.']);
 		}
 		
-		// Fetch voucher
-		$response = $this->call_voucher_api($shipment_number, $user_alias, $credential_value, $api_key);
+		// Fetch voucher using tracking number
+		$response = $this->call_voucher_api($tracking_number, $user_alias, $credential_value, $api_key);
 		
 		if (is_wp_error($response)) {
 			wp_send_json_error(['message' => $response->get_error_message()]);
@@ -406,42 +416,59 @@ class apxpc_Orders {
 		
 		// Get items from order
 		$items = [];
-		foreach ($order->get_items() as $item) {
-			$product = $item->get_product();
-			$quantity = $item->get_quantity();
-			
-			// Get product weight
-			$weight = $product ? (float)$product->get_weight() : 1;
-			
-			// Add item for each quantity
-			for ($i = 0; $i < $quantity; $i++) {
-				$items[] = [
-					'GoodsType' => 'NoDocs',
-					'Content' => $item->get_name(),
-					'IsDangerousGoods' => false,
-					'IsDryIce' => false,
-					'IsFragile' => false,
-					'Weight' => [
-						'Unit' => 'kg',
-						'Value' => $weight ?: 1,
-					],
-				];
-			}
-		}
 		
-		// If no items, add a default
-		if (empty($items)) {
+		// Check if treating order as one package
+		$treat_as_one_package = get_option($this->plugin->setPrefix('treat_order_as_one_package'));
+		
+		if ($treat_as_one_package) {
+			// Add a single default item regardless of order contents
 			$items[] = [
 				'GoodsType' => 'NoDocs',
-				'Content' => 'Order Item',
 				'IsDangerousGoods' => false,
 				'IsDryIce' => false,
 				'IsFragile' => false,
 				'Weight' => [
 					'Unit' => 'kg',
-					'Value' => 1,
+					'Value' => 2,
 				],
 			];
+		} else {
+			foreach ($order->get_items() as $item) {
+				$product = $item->get_product();
+				$quantity = $item->get_quantity();
+				
+				// Get product weight
+				$weight = $product ? (float)$product->get_weight() : 2;
+				
+				// Add item for each quantity
+				for ($i = 0; $i < $quantity; $i++) {
+					$items[] = [
+						'GoodsType' => 'NoDocs',
+						'Content' => $item->get_name(),
+						'IsDangerousGoods' => false,
+						'IsDryIce' => false,
+						'IsFragile' => false,
+						'Weight' => [
+							'Unit' => 'kg',
+							'Value' => $weight ?: 2,
+						],
+					];
+				}
+			}
+			
+			// If no items, add a default
+			if (empty($items)) {
+				$items[] = [
+					'GoodsType' => 'NoDocs',
+					'IsDangerousGoods' => false,
+					'IsDryIce' => false,
+					'IsFragile' => false,
+					'Weight' => [
+						'Unit' => 'kg',
+						'Value' => 2,
+					],
+				];
+			}
 		}
 		
 		// Build payload
@@ -453,6 +480,7 @@ class apxpc_Orders {
 			],
 			'ShipmentDate' => current_time('Y-m-d'),
 			'comments' => $order->get_customer_note() ?: '',
+			"BasicService" => $shipping_address['state'] === 'I' ? "97" : "21", // GIA ACS
 			'Requestor' => [
 				'Code' => $account_code,
 			],

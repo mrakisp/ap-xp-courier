@@ -114,6 +114,7 @@ class apxpc_Backend {
 		register_setting('apxpc_options', $this->plugin->setPrefix('auto_send_email'));
 		register_setting('apxpc_options', $this->plugin->setPrefix('email_logo_image'));
 		register_setting('apxpc_options', $this->plugin->setPrefix('voucher_template'));
+		register_setting('apxpc_options', $this->plugin->setPrefix('treat_order_as_one_package'));
 
 		// Add fields
 		add_settings_field(
@@ -192,6 +193,14 @@ class apxpc_Backend {
 			$this->plugin->setPrefix('voucher_template'),
 			__('Voucher Template', $this->plugin->config["textDomain"]),
 			[&$this, 'render_field_voucher_template'],
+			$xp_courier_settings,
+			$menu1_section1
+		);
+
+		add_settings_field(
+			$this->plugin->setPrefix('treat_order_as_one_package'),
+			__('Treat order as one package', $this->plugin->config["textDomain"]),
+			[&$this, 'render_field_treat_order_as_one_package'],
 			$xp_courier_settings,
 			$menu1_section1
 		);
@@ -320,6 +329,16 @@ class apxpc_Backend {
 		// echo '<option value="pdf" ' . selected($value, 'pdf', false) . '>' . esc_html__('PDF', $this->plugin->config['textDomain']) . '</option>';
 		echo '<option value="singlepdf" ' . selected($value, 'singlepdf', false) . '>' . esc_html__('Single PDF (100x150)', $this->plugin->config['textDomain']) . '</option>';
 		echo '</select>';
+	}
+
+	/**
+	 * Render Treat order as one package checkbox
+	 */
+	public function render_field_treat_order_as_one_package() {
+		$value = get_option($this->plugin->setPrefix('treat_order_as_one_package'));
+		$checked = $value ? 'checked' : '';
+		echo '<input type="checkbox" name="' . esc_attr($this->plugin->setPrefix('treat_order_as_one_package')) . '" value="1" ' . esc_attr($checked) . ' />';
+		echo '<label style="margin-left: 10px;">' . esc_html__('Create a single voucher with all items as one package', $this->plugin->config['textDomain']) . '</label>';
 	}
 
 	
